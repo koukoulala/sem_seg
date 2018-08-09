@@ -2,12 +2,8 @@ import sys, os
 import torch
 import argparse
 import torch.nn as nn
-import torch.nn.functional as F
-import torchvision.models as models
 
 from torch.autograd import Variable
-from torch.utils import data
-from tqdm import tqdm
 
 from models import get_model
 from loader import get_loader, get_data_path
@@ -15,8 +11,7 @@ from skimage.transform import resize
 import numpy as np
 
 from sklearn.model_selection import train_test_split
-from keras import Model
-from keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
+
 def train(args):
 
     # Setup Dataloader
@@ -83,7 +78,7 @@ def train(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Hyperparams')
-    parser.add_argument('--arch', nargs='?', type=str, default='unet_keras',
+    parser.add_argument('--arch', nargs='?', type=str, default='unet',
                         help='Architecture to use [\' unet, segnet etc\']')
     parser.add_argument('--dataset', nargs='?', type=str, default='TGS',
                         help='Dataset to use [\' TGS etc\']')
