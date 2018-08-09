@@ -46,7 +46,7 @@ def train(args):
     # Setup Model
     model = get_model(args.arch)
     print(model)
-    model = torch.nn.DataParallel(model, device_ids=range(torch.cuda.device_count()))
+    model = torch.nn.DataParallel(model, device_ids=0)
     model.cuda()
 
     # Check if model has custom optimizer / loss
