@@ -39,7 +39,8 @@ def train(args):
         test_size=0.2, stratify=train_df.coverage_class, random_state=1337)
     x_train = np.append(x_train, [np.fliplr(x) for x in x_train], axis=0)
     y_train = np.append(y_train, [np.fliplr(x) for x in y_train], axis=0)
-    trainloader = data.DataLoader(zip(x_train,y_train), batch_size=args.batch_size, num_workers=8, shuffle=True)
+    trainloader_x = data.DataLoader(x_train, batch_size=args.batch_size, num_workers=8, shuffle=True)
+    trainloader_y = data.DataLoader(y_train, batch_size=args.batch_size, num_workers=8, shuffle=True)
 
 
     # Setup Model
@@ -54,7 +55,7 @@ def train(args):
     best_loss=1000
     for epoch in range(args.n_epoch):
         model.train()
-        for i, (images, labels) in enumerate(trainloader):
+        for i, (images, labels) in enumerate(zip(trainloader_x,trainloader_y)):
             images = Variable(images.cuda())
             labels = Variable(labels.cuda())
 
