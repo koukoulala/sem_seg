@@ -39,10 +39,9 @@ def train(args):
         test_size=0.2, stratify=train_df.coverage_class, random_state=1337)
     x_train = np.append(x_train, [np.fliplr(x) for x in x_train], axis=0)
     y_train = np.append(y_train, [np.fliplr(x) for x in y_train], axis=0)
-    print(x_train[0:5])
-    trainloader_x = data.DataLoader(x_train, batch_size=args.batch_size, num_workers=8, shuffle=True)
-    trainloader_y = data.DataLoader(y_train, batch_size=args.batch_size, num_workers=8, shuffle=True)
-    print(trainloader_x.batch_size)
+    print(x_train.shape)
+    torch_dataset=data.TensorDataset(data_tensor=torch.from_numpy(x_train),target_tensor=torch.from_numpy(y_train))
+    trainloader = data.DataLoader(torch_dataset, batch_size=args.batch_size, num_workers=8, shuffle=True)
 
 
     # Setup Model
@@ -57,7 +56,7 @@ def train(args):
     best_loss=1000
     for epoch in range(args.n_epoch):
         model.train()
-        for i, (images, labels) in enumerate(zip(trainloader_x,trainloader_y)):
+        for i, (images, labels) in enumerate(trainloader):
             images = Variable(images.cuda())
             labels = Variable(labels.cuda())
 
