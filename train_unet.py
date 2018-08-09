@@ -54,7 +54,7 @@ def train(args):
     best_loss=1000
     for epoch in range(args.n_epoch):
         model.train()
-        for i, (images, labels) in enumerate(x_train,y_train):
+        for i, (images, labels) in enumerate(zip(x_train,y_train)):
             images = Variable(images.cuda())
             labels = Variable(labels.cuda())
 
