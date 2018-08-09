@@ -43,6 +43,8 @@ def train(args):
         test_size=0.2, stratify=train_df.coverage_class, random_state=1337)
     x_train = np.append(x_train, [np.fliplr(x) for x in x_train], axis=0)
     y_train = np.append(y_train, [np.fliplr(x) for x in y_train], axis=0)
+    x_train = torch.from_numpy(x_train)
+    y_train = torch.from_numpy(y_train)
     #print(x_train.shape,y_train.shape)
 
     # Setup Model
