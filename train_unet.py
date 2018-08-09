@@ -39,8 +39,10 @@ def train(args):
         test_size=0.2, stratify=train_df.coverage_class, random_state=1337)
     x_train = np.append(x_train, [np.fliplr(x) for x in x_train], axis=0)
     y_train = np.append(y_train, [np.fliplr(x) for x in y_train], axis=0)
+    print(x_train[0:5])
     trainloader_x = data.DataLoader(x_train, batch_size=args.batch_size, num_workers=8, shuffle=True)
     trainloader_y = data.DataLoader(y_train, batch_size=args.batch_size, num_workers=8, shuffle=True)
+    print(trainloader_x.batch_size)
 
 
     # Setup Model
