@@ -12,8 +12,8 @@ def get_model(name, n_classes=0):
         )
     elif name== 'unet':
         model=model(
-        start_filters=16,
-        in_channels=3
+        start_filters=128,
+        in_channels=1
     )
     else:
         model = model(n_classes=n_classes)

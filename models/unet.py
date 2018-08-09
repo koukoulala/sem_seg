@@ -4,7 +4,7 @@ from models.utils import *
 
 class unet(nn.Module):
 
-    def __init__(self, start_filters=16, is_deconv=True, in_channels=3, is_batchnorm=False):
+    def __init__(self, start_filters=16, is_deconv=True, in_channels=1, is_batchnorm=False):
         super(unet, self).__init__()
         self.is_deconv = is_deconv
         self.in_channels = in_channels
