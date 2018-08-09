@@ -1,12 +1,7 @@
 import numpy as np
 import pandas as pd
+import scipy.misc as m
 
-from random import randint
-
-import matplotlib.pyplot as plt
-plt.style.use('seaborn-white')
-
-from keras.preprocessing.image import load_img
 from tqdm import tqdm_notebook
 from torch.utils import data
 
@@ -25,10 +20,10 @@ class TGSLoader(data.Dataset):
         self.test_df = depths_df[~depths_df.index.isin(self.train_df.index)]
 
         self.train_df["images"] = [
-            np.array(load_img(self.root+"train/images/{}.png".format(idx), grayscale=True)) / 255 for idx in
+            np.array(m.imread(self.root+"train/images/{}.png".format(idx))) / 255 for idx in
             tqdm_notebook(self.train_df.index)]
         self.train_df["masks"] = [
-            np.array(load_img(self.root+"train/masks/{}.png".format(idx), grayscale=True)) / 255 for idx in
+            np.array(m.imread(self.root+"train/masks/{}.png".format(idx))) / 255 for idx in
             tqdm_notebook(self.train_df.index)]
 
         self.train_df["coverage"] = self.train_df.masks.map(np.sum) / pow(img_size_ori, 2)
