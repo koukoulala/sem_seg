@@ -2,6 +2,7 @@ import sys, os
 import torch
 import argparse
 import torch.nn as nn
+from torch.utils import data
 
 from torch.autograd import Variable
 
@@ -17,11 +18,11 @@ def train(args):
     # Setup Dataloader
     data_loader = get_loader(args.dataset)
     data_path = get_data_path(args.dataset)
-    data = data_loader(data_path, img_size_ori=args.img_size_ori,img_size_target=args.img_size_target, img_norm=args.img_norm)
+    data_all = data_loader(data_path, img_size_ori=args.img_size_ori,img_size_target=args.img_size_target, img_norm=args.img_norm)
 
-    train_df=data.train_df
-    img_size_ori=data.img_size_ori
-    img_size_target=data.img_size_target
+    train_df=data_all.train_df
+    img_size_ori=data_all.img_size_ori
+    img_size_target=data_all.img_size_target
 
     def upsample(img):
         if img_size_ori == img_size_target:
@@ -38,9 +39,8 @@ def train(args):
         test_size=0.2, stratify=train_df.coverage_class, random_state=1337)
     x_train = np.append(x_train, [np.fliplr(x) for x in x_train], axis=0)
     y_train = np.append(y_train, [np.fliplr(x) for x in y_train], axis=0)
-    x_train = torch.from_numpy(x_train)
-    y_train = torch.from_numpy(y_train)
-    #print(x_train.shape,y_train.shape)
+    trainloader = data.DataLoader(zip(x_train,y_train), batch_size=args.batch_size, num_workers=8, shuffle=True)
+
 
     # Setup Model
     model = get_model(args.arch)
@@ -54,7 +54,7 @@ def train(args):
     best_loss=1000
     for epoch in range(args.n_epoch):
         model.train()
-        for i, (images, labels) in enumerate(zip(x_train,y_train)):
+        for i, (images, labels) in enumerate(trainloader):
             images = Variable(images.cuda())
             labels = Variable(labels.cuda())
 
