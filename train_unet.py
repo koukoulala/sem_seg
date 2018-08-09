@@ -47,8 +47,7 @@ def train(args):
     model = get_model(args.arch)
     print(model)
     #model = torch.nn.DataParallel(model, device_ids=range(torch.cuda.device_count()))
-    #model.cuda()
-    model.gpu()
+    model.cuda()
 
     # Check if model has custom optimizer / loss
     optimizer = torch.optim.SGD(model.parameters(), lr=args.l_rate, momentum=0.99, weight_decay=5e-4)
