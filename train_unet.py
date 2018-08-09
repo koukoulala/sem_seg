@@ -43,9 +43,9 @@ def train(args):
     torch_dataset=data.TensorDataset(torch.from_numpy(x_train),torch.from_numpy(y_train))
     trainloader = data.DataLoader(torch_dataset, batch_size=args.batch_size, num_workers=8, shuffle=True)
 
-
     # Setup Model
     model = get_model(args.arch)
+    print(model)
     model = torch.nn.DataParallel(model, device_ids=range(torch.cuda.device_count()))
     model.cuda()
 
