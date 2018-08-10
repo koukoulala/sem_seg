@@ -33,17 +33,17 @@ class SaltLoader(data.Dataset):
             img = io.imread(self.root+"train/images/{}.png".format(idx))
             x = resize(img, (128, 128, 1), mode='constant', preserve_range=True)
             X_train[n]=x
+            train_df["images"]=np.array(x,dtype=np.uint8)
             mask = io.imread(self.root+"train/masks/{}.png".format(idx))
-            Y_train[n]=resize(mask, (128, 128, 1),
-                                mode='constant',
-                                preserve_range=True)
-        X_train_shaped = X_train.reshape(-1, 1, 128, 128) / 255
-        Y_train_shaped = Y_train.reshape(-1, 1, 128, 128)
-        X_train_shaped = X_train_shaped.astype(np.float32)
-        Y_train_shaped = Y_train_shaped.astype(np.float32)
+            y=resize(mask, (128, 128, 1),mode='constant',preserve_range=True)
+            Y_train[n]=y
+            train_df["masks"]=np.array(y,dtype=np.bool_)
 
-        train_df["images"]=X_train_shaped
-        train_df["masks"]=Y_train_shaped
+        train_df["images"] = train_df["images"].reshape(-1, 1, 128, 128) / 255
+        train_df["masks"] = train_df["masks"].reshape(-1, 1, 128, 128)
+        train_df["images"] = train_df["images"].astype(np.float32)
+        train_df["masks"] = train_df["masks"].astype(np.float32)
+
         train_df["coverage"] = train_df.masks.map(np.sum) / pow(img_size_ori, 2)
         train_df["coverage_class"] = train_df.coverage.map(self.cov_to_class)
 
