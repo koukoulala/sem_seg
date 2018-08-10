@@ -20,10 +20,10 @@ class TGSLoader(data.Dataset):
         self.test_df = depths_df[~depths_df.index.isin(self.train_df.index)]
 
         self.train_df["images"] = [
-            io.imread(self.root+"train/images/{}.png".format(idx),as_grey=True) for idx in
+            np.array(io.imread(self.root+"train/images/{}.png".format(idx),as_grey=True),dtype=np.float32) for idx in
             tqdm_notebook(self.train_df.index)]
         self.train_df["masks"] = [
-            io.imread(self.root+"train/masks/{}.png".format(idx),as_grey=True) for idx in
+            np.array(io.imread(self.root+"train/masks/{}.png".format(idx),as_grey=True),dtype=np.bool_) for idx in
             tqdm_notebook(self.train_df.index)]
 
         self.train_df["coverage"] = self.train_df.masks.map(np.sum) / pow(img_size_ori, 2)

@@ -29,6 +29,16 @@ class SaltLoader(data.Dataset):
         Y_train = np.zeros((len(train_df), img_size_target, img_size_target, 1), dtype=np.bool_)
         print('Getting and resizing train images and masks ... ')
 
+        self.train_df["images"] = [
+            np.array(io.imread(self.root + "train/images/{}.png".format(idx), as_grey=True), dtype=np.float32) for idx
+            in tqdm_notebook(self.train_df.index)]
+        self.train_df["masks"] = [
+            np.array(io.imread(self.root + "train/masks/{}.png".format(idx), as_grey=True), dtype=np.bool_) for idx in
+            tqdm_notebook(self.train_df.index)]
+
+        self.train_df["coverage"] = self.train_df.masks.map(np.sum) / pow(img_size_ori, 2)
+        self.train_df["coverage_class"] = self.train_df.coverage.map(self.cov_to_class)
+        '''
         for n,idx in tqdm_notebook(enumerate(train_df.index),total=len(train_df.index)):
             img = io.imread(self.root+"train/images/{}.png".format(idx))
             x = resize(img, (128, 128, 1), mode='constant', preserve_range=True)
@@ -43,15 +53,13 @@ class SaltLoader(data.Dataset):
         Y_train_shaped = Y_train.reshape(-1, 1, 128, 128)
         X_train_shaped = X_train_shaped.astype(np.float32)
         Y_train_shaped = Y_train_shaped.astype(np.float32)
-
-        #train_df["coverage"] = np.sum(Y_train_shaped) / pow(img_size_ori, 2)
-        #train_df["coverage_class"] = train_df.coverage.map(self.cov_to_class)
+        '''
 
         # split data
         ids_train, ids_valid, x_train, x_valid, y_train, y_valid, depth_train, depth_test = train_test_split(
             train_df.index.values,
-            X_train_shaped,
-            Y_train_shaped,
+            np.array(train_df.images.map(self.upsample).tolist(),dtype=np.float32).reshape(-1, img_size_target, img_size_target, 1),
+            np.array(train_df.masks.map(self.upsample).tolist(),dtype=np.float32).reshape(-1, img_size_target, img_size_target, 1),
             train_df.z.values,
             test_size=0.2, stratify=train_df.coverage_class, random_state=1337)
 
@@ -79,3 +87,8 @@ class SaltLoader(data.Dataset):
         for i in range(0, 11):
             if val * 10 <= i:
                 return i
+
+    def upsample(self,img):
+        if self.img_size_ori == self.img_size_target:
+            return img
+        return resize(img, (self.img_size_target, self.img_size_target), mode='constant', preserve_range=True)
