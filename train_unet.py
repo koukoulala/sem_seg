@@ -3,6 +3,7 @@ import torch
 import argparse
 import torch.nn as nn
 import numpy as np
+from sklearn.metrics import jaccard_similarity_score
 from torch.utils import data
 
 from torch.autograd import Variable
@@ -63,6 +64,29 @@ def train(args):
         # Print Loss
         print('Epoch: {}. Train Loss: {}. Val Loss: {}'.format(epoch + 1, np.mean(train_losses), np.mean(val_losses)))
 
+    y_pred_true_pairs = []
+    for images, masks in val_loader:
+        images = Variable(images.cuda())
+        y_preds = model(images)
+        for i, _ in enumerate(images):
+            y_pred = y_preds[i]
+            y_pred = torch.sigmoid(y_pred)
+            y_pred = y_pred.cpu().data.numpy()
+            y_pred_true_pairs.append((y_pred, masks[i].numpy()))
+
+    # https://www.kaggle.com/leighplt/goto-pytorch-fix-for-v0-3
+    for threshold in np.linspace(0, 1, 11):
+
+        ious = []
+        for y_pred, mask in y_pred_true_pairs:
+            prediction = (y_pred > threshold).astype(int)
+            iou = jaccard_similarity_score(mask.flatten(), prediction.flatten())
+            ious.append(iou)
+
+        accuracies = [np.mean(ious > iou_threshold)
+                      for iou_threshold in np.linspace(0.5, 0.95, 10)]
+        print('Threshold: %.1f, Metric: %.3f' % (threshold, np.mean(accuracies)))
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Hyperparams')
@@ -85,7 +109,7 @@ if __name__ == '__main__':
                         help='# of the epochs')
     parser.add_argument('--batch_size', nargs='?', type=int, default=16,
                         help='Batch Size')
-    parser.add_argument('--l_rate', nargs='?', type=float, default=1e-5, 
+    parser.add_argument('--l_rate', nargs='?', type=float, default=1e-3,
                         help='Learning Rate')
 
     args = parser.parse_args()
