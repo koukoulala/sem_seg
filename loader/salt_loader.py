@@ -79,7 +79,7 @@ class SaltLoader(data.Dataset):
     def __getitem__(self, idx):
         image = self.images[idx]
         mask = None
-        if self.train!="test":
+        if self.split!="test":
             mask = self.masks[idx]
         return (image, mask)
 
