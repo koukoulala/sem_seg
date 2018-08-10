@@ -1,4 +1,4 @@
-import sys, os
+import json
 import torch
 import argparse
 import torch.nn as nn
@@ -7,25 +7,25 @@ from torch.utils import data
 
 from torch.autograd import Variable
 
-from models import get_model
-from loader import get_loader, get_data_path
+from models.unet2 import Unet
+from loader.salt_loader import SaltLoader
 
 def train(args):
 
     # Setup Dataloader
-    data_loader = get_loader(args.dataset)
-    data_path = get_data_path(args.dataset)
-    t_loader = data_loader(data_path, img_size_ori=args.img_size_ori,img_size_target=args.img_size_target, img_norm=args.img_norm)
-    v_loader = data_loader(data_path, split='val',img_size_ori=args.img_size_ori, img_size_target=args.img_size_target,
+    data_json = json.load(open('config.json'))
+    data_path=data_json[args.dataset]['data_path']
+    t_loader = SaltLoader(data_path, img_size_ori=args.img_size_ori,img_size_target=args.img_size_target, img_norm=args.img_norm)
+    v_loader = SaltLoader(data_path, split='val',img_size_ori=args.img_size_ori, img_size_target=args.img_size_target,
                            img_norm=args.img_norm)
 
     train_loader = data.DataLoader(t_loader, batch_size=args.batch_size, num_workers=8, shuffle=True)
     val_loader = data.DataLoader(v_loader, batch_size=args.batch_size, num_workers=8)
 
     # Setup Model
-    model = get_model(args.arch)
+    model = Unet()
     print(model)
-    #model = torch.nn.DataParallel(model, device_ids=range(torch.cuda.device_count()))
+
     model.cuda()
 
     # Check if model has custom optimizer / loss
@@ -83,7 +83,7 @@ if __name__ == '__main__':
 
     parser.add_argument('--n_epoch', nargs='?', type=int, default=10,
                         help='# of the epochs')
-    parser.add_argument('--batch_size', nargs='?', type=int, default=1,
+    parser.add_argument('--batch_size', nargs='?', type=int, default=16,
                         help='Batch Size')
     parser.add_argument('--l_rate', nargs='?', type=float, default=1e-5, 
                         help='Learning Rate')

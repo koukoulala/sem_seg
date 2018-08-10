@@ -59,7 +59,7 @@ class SaltLoader(data.Dataset):
         ids_train, ids_valid, x_train, x_valid, y_train, y_valid, cov_train, cov_test, depth_train, depth_test = train_test_split(
             train_df.index.values,
             np.array(train_df.images.map(self.upsample).tolist(),dtype=np.float32).reshape(-1, 1,img_size_target, img_size_target),
-            np.array(train_df.masks.map(self.upsample).tolist(),dtype=np.float32).reshape(-1,1, img_size_target, img_size_target),
+            np.array(train_df.masks.map(self.upsample).tolist(),dtype=np.float32).astype(np.float32).reshape(-1,1, img_size_target, img_size_target),
             train_df.coverage.values,
             train_df.z.values,
             test_size=0.2, stratify=train_df.coverage_class, random_state=1337)
