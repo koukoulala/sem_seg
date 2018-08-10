@@ -44,7 +44,7 @@ class SaltLoader(data.Dataset):
         X_train_shaped = X_train_shaped.astype(np.float32)
         Y_train_shaped = Y_train_shaped.astype(np.float32)
 
-        train_df["coverage"] = Y_train_shaped.map(np.sum) / pow(img_size_ori, 2)
+        train_df["coverage"] = np.sum(Y_train_shaped) / pow(img_size_ori, 2)
         train_df["coverage_class"] = train_df.coverage.map(self.cov_to_class)
 
         # split data
