@@ -66,7 +66,7 @@ def train(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Hyperparams')
-    parser.add_argument('--arch', nargs='?', type=str, default='unet2',
+    parser.add_argument('--arch', nargs='?', type=str, default='unet',
                         help='Architecture to use [\' unet, segnet etc\']')
     parser.add_argument('--dataset', nargs='?', type=str, default='salt',
                         help='Dataset to use [\' TGS etc\']')
