@@ -1,60 +1,116 @@
 import torch.nn as nn
+import torch
 
-from models.utils import *
+class double_conv(nn.Module):
+    def __init__(self, in_channels, out_channels, kernel_size=3, stride=1, padding=1):
+        super(double_conv, self).__init__()
+        self.conv = nn.Sequential(
+            nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size,
+                      stride=stride, padding=padding),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(out_channels, out_channels, kernel_size=kernel_size,
+                      stride=stride, padding=padding),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU(inplace=True))
 
-class unet(nn.Module):
+    def forward(self, x):
+        x = self.conv(x)
+        return x
 
-    def __init__(self, start_filters=16, is_deconv=True, in_channels=1, is_batchnorm=False):
-        super(unet, self).__init__()
-        self.is_deconv = is_deconv
-        self.in_channels = in_channels
-        self.is_batchnorm = is_batchnorm
 
-        filters = [start_filters, start_filters*2, start_filters*4, start_filters*8, start_filters*16]
+start_fm = 16
 
-        # downsampling
-        self.conv1 = unetConv2(self.in_channels, filters[0], self.is_batchnorm)
+
+class Unet(nn.Module):
+
+    def __init__(self):
+        super(Unet, self).__init__()
+
+        # Input 128x128x1
+
+        # Contracting Path
+
+        # (Double) Convolution 1
+        self.double_conv1 = double_conv(1, start_fm, 3, 1, 1)
+        # Max Pooling 1
         self.maxpool1 = nn.MaxPool2d(kernel_size=2)
 
-        self.conv2 = unetConv2(filters[0], filters[1], self.is_batchnorm)
+        # Convolution 2
+        self.double_conv2 = double_conv(start_fm, start_fm * 2, 3, 1, 1)
+        # Max Pooling 2
         self.maxpool2 = nn.MaxPool2d(kernel_size=2)
 
-        self.conv3 = unetConv2(filters[1], filters[2], self.is_batchnorm)
+        # Convolution 3
+        self.double_conv3 = double_conv(start_fm * 2, start_fm * 4, 3, 1, 1)
+        # Max Pooling 3
         self.maxpool3 = nn.MaxPool2d(kernel_size=2)
 
-        self.conv4 = unetConv2(filters[2], filters[3], self.is_batchnorm)
+        # Convolution 4
+        self.double_conv4 = double_conv(start_fm * 4, start_fm * 8, 3, 1, 1)
+        # Max Pooling 4
         self.maxpool4 = nn.MaxPool2d(kernel_size=2)
 
-        self.center = unetConv2(filters[3], filters[4], self.is_batchnorm)
+        # Convolution 5
+        self.double_conv5 = double_conv(start_fm * 8, start_fm * 16, 3, 1, 1)
 
-        # upsampling
-        self.up_concat4 = unetUp(filters[4], filters[3], self.is_deconv)
-        self.up_concat3 = unetUp(filters[3], filters[2], self.is_deconv)
-        self.up_concat2 = unetUp(filters[2], filters[1], self.is_deconv)
-        self.up_concat1 = unetUp(filters[1], filters[0], self.is_deconv)
+        # Transposed Convolution 4
+        self.t_conv4 = nn.ConvTranspose2d(start_fm * 16, start_fm * 8, 2, 2)
+        # Expanding Path Convolution 4
+        self.ex_double_conv4 = double_conv(start_fm * 16, start_fm * 8, 3, 1, 1)
 
-        # final conv (without any concat)
-        self.final = nn.Conv2d(filters[0], 1, 1)
+        # Transposed Convolution 3
+        self.t_conv3 = nn.ConvTranspose2d(start_fm * 8, start_fm * 4, 2, 2)
+        # Convolution 3
+        self.ex_double_conv3 = double_conv(start_fm * 8, start_fm * 4, 3, 1, 1)
+
+        # Transposed Convolution 2
+        self.t_conv2 = nn.ConvTranspose2d(start_fm * 4, start_fm * 2, 2, 2)
+        # Convolution 2
+        self.ex_double_conv2 = double_conv(start_fm * 4, start_fm * 2, 3, 1, 1)
+        # Transposed Convolution 1
+        self.t_conv1 = nn.ConvTranspose2d(start_fm * 2, start_fm, 2, 2)
+        # Convolution 1
+        self.ex_double_conv1 = double_conv(start_fm * 2, start_fm, 3, 1, 1)
+
+        # One by One Conv
+        self.one_by_one = nn.Conv2d(start_fm, 1, 1, 1, 0)
+        # self.final_act = nn.Sigmoid()
 
     def forward(self, inputs):
-        conv1 = self.conv1(inputs)
+        # Contracting Path
+        conv1 = self.double_conv1(inputs)
         maxpool1 = self.maxpool1(conv1)
 
-        conv2 = self.conv2(maxpool1)
+        conv2 = self.double_conv2(maxpool1)
         maxpool2 = self.maxpool2(conv2)
 
-        conv3 = self.conv3(maxpool2)
+        conv3 = self.double_conv3(maxpool2)
         maxpool3 = self.maxpool3(conv3)
 
-        conv4 = self.conv4(maxpool3)
+        conv4 = self.double_conv4(maxpool3)
         maxpool4 = self.maxpool4(conv4)
 
-        center = self.center(maxpool4)
-        up4 = self.up_concat4(conv4, center)
-        up3 = self.up_concat3(conv3, up4)
-        up2 = self.up_concat2(conv2, up3)
-        up1 = self.up_concat1(conv1, up2)
+        # Bottom
+        conv5 = self.double_conv5(maxpool4)
 
-        final = self.final(up1)
+        # Expanding Path
+        t_conv4 = self.t_conv4(conv5)
+        cat4 = torch.cat([conv4, t_conv4], 1)
+        ex_conv4 = self.ex_double_conv4(cat4)
 
-        return final
+        t_conv3 = self.t_conv3(ex_conv4)
+        cat3 = torch.cat([conv3, t_conv3], 1)
+        ex_conv3 = self.ex_double_conv3(cat3)
+
+        t_conv2 = self.t_conv2(ex_conv3)
+        cat2 = torch.cat([conv2, t_conv2], 1)
+        ex_conv2 = self.ex_double_conv2(cat2)
+
+        t_conv1 = self.t_conv1(ex_conv2)
+        cat1 = torch.cat([conv1, t_conv1], 1)
+        ex_conv1 = self.ex_double_conv1(cat1)
+
+        one_by_one = self.one_by_one(ex_conv1)
+
+        return one_by_one
