@@ -42,6 +42,7 @@ def train(args):
     y_train = np.append(y_train, [np.fliplr(x) for x in y_train], axis=0)
     print(x_train.shape)
     torch_dataset=data.TensorDataset(torch.from_numpy(x_train),torch.from_numpy(y_train))
+
     trainloader = data.DataLoader(torch_dataset, batch_size=args.batch_size, num_workers=8, shuffle=True)
 
     # Setup Model

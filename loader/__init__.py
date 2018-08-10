@@ -1,6 +1,7 @@
 import json
 
 from loader.TGS_loader import TGSLoader
+from loader.salt_loader import SaltLoader
 
 
 def get_loader(name):
@@ -10,6 +11,7 @@ def get_loader(name):
     """
     return {
         'TGS': TGSLoader,
+        'salt':SaltLoader,
     }[name]
 
 
