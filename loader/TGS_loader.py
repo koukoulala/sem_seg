@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-import scipy.misc as m
+from skimage import io
 
 from tqdm import tqdm_notebook
 from torch.utils import data
@@ -20,10 +20,10 @@ class TGSLoader(data.Dataset):
         self.test_df = depths_df[~depths_df.index.isin(self.train_df.index)]
 
         self.train_df["images"] = [
-            np.array(m.imread(self.root+"train/images/{}.png".format(idx))) / 255 for idx in
+            np.array(io.imread(self.root+"train/images/{}.png".format(idx),as_grey=True)) / 255 for idx in
             tqdm_notebook(self.train_df.index)]
         self.train_df["masks"] = [
-            np.array(m.imread(self.root+"train/masks/{}.png".format(idx))) / 255 for idx in
+            np.array(io.imread(self.root+"train/masks/{}.png".format(idx),as_grey=True)) / 255 for idx in
             tqdm_notebook(self.train_df.index)]
 
         self.train_df["coverage"] = self.train_df.masks.map(np.sum) / pow(img_size_ori, 2)

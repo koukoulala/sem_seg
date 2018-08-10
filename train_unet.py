@@ -37,6 +37,7 @@ def train(args):
         train_df.coverage.values,
         train_df.z.values,
         test_size=0.2, stratify=train_df.coverage_class, random_state=1337)
+
     x_train = np.append(x_train, [np.fliplr(x) for x in x_train], axis=0)
     y_train = np.append(y_train, [np.fliplr(x) for x in y_train], axis=0)
     print(x_train.shape)
