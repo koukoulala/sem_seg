@@ -44,15 +44,14 @@ class SaltLoader(data.Dataset):
         X_train_shaped = X_train_shaped.astype(np.float32)
         Y_train_shaped = Y_train_shaped.astype(np.float32)
 
-        train_df["coverage"] = np.sum(Y_train_shaped) / pow(img_size_ori, 2)
-        train_df["coverage_class"] = train_df.coverage.map(self.cov_to_class)
+        #train_df["coverage"] = np.sum(Y_train_shaped) / pow(img_size_ori, 2)
+        #train_df["coverage_class"] = train_df.coverage.map(self.cov_to_class)
 
         # split data
-        ids_train, ids_valid, x_train, x_valid, y_train, y_valid, cov_train, cov_test, depth_train, depth_test = train_test_split(
+        ids_train, ids_valid, x_train, x_valid, y_train, y_valid, depth_train, depth_test = train_test_split(
             train_df.index.values,
             X_train_shaped,
             Y_train_shaped,
-            train_df.coverage.values,
             train_df.z.values,
             test_size=0.2, stratify=train_df.coverage_class, random_state=1337)
 
