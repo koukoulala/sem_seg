@@ -59,7 +59,7 @@ def train(args):
             outputs = model(images)
             loss = loss_fn(outputs, masks)
             val_losses.append(loss.data)
-            
+
             if loss<best_loss:
                 best_loss=loss
                 state = {'epoch': epoch + 1,
@@ -71,6 +71,8 @@ def train(args):
         mean_val_losses.append(np.mean(val_losses))
         # Print Loss
         print('Epoch: {}. Train Loss: {}. Val Loss: {}'.format(epoch + 1, np.mean(train_losses), np.mean(val_losses)))
+
+    print("saved model in ./saved_models/{}_{}_best_model.pkl".format(args.arch, args.dataset))
 
     y_pred_true_pairs = []
     for images, masks in val_loader:

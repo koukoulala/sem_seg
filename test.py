@@ -1,51 +1,50 @@
-
+import json
 import argparse
-import pandas as pd
-
-from loader import get_loader, get_data_path
+import torch
 from skimage.transform import resize
+
+from torch.autograd import Variable
+import pandas as pd
 from utils import *
 
-from sklearn.model_selection import train_test_split
-from keras.preprocessing.image import load_img
-from keras.models import load_model
+from loader.salt_loader import SaltLoader
 from tqdm import tqdm_notebook
+from torch.utils import data
+from models.unet import Unet
+
 def test(args):
 
     # Setup Dataloader
-    data_loader = get_loader(args.dataset)
-    data_path = get_data_path(args.dataset)
-    data = data_loader(data_path, img_size_ori=args.img_size_ori,img_size_target=args.img_size_target, img_norm=args.img_norm)
+    data_json = json.load(open('config.json'))
+    data_path = data_json[args.dataset]['data_path']
+    v_loader = SaltLoader(data_path, split='val', split_size=0.5)
+    train_df=v_loader.train_df
 
-    train_df=data.train_df
-    test_df=data.test_df
-    img_size_ori=data.img_size_ori
-    img_size_target=data.img_size_target
+    val_loader = data.DataLoader(v_loader, batch_size=args.batch_size, num_workers=8)
 
-    def upsample(img):
-        if img_size_ori == img_size_target:
-            return img
-        return resize(img, (img_size_target, img_size_target), mode='constant', preserve_range=True)
+    # load Model
+    model = Unet()
+    model.load_state_dict(torch.load(args.model_path)['model_state'])
+    model.cuda()
+    model.eval()
 
-    def downsample(img):
-        if img_size_ori == img_size_target:
-            return img
-        return resize(img, (img_size_ori, img_size_ori), mode='constant', preserve_range=True)
+    #validate
+    pred_list=[]
+    for images, masks in val_loader:
+        images = Variable(images.cuda())
+        y_preds = model(images)
+        # print(y_preds.shape)
+        y_preds_shaped = y_preds.reshape(-1, 128, 128)
+        for idx in range(args.batch_size):
+            y_pred = y_preds_shaped[idx]
+            pred = torch.sigmoid(y_pred)
+            pred = pred.cpu().data.numpy()
+            pred_ori = resize(pred, (101, 101), mode='constant', preserve_range=True)
+            pred_list.append(pred_ori)
 
-    #split data
-    ids_train, ids_valid, x_train, x_valid, y_train, y_valid, cov_train, cov_test, depth_train, depth_test = train_test_split(
-        train_df.index.values,
-        np.array(train_df.images.map(upsample).tolist()).reshape(-1, img_size_target, img_size_target, 1),
-        np.array(train_df.masks.map(upsample).tolist()).reshape(-1, img_size_target, img_size_target, 1),
-        train_df.coverage.values,
-        train_df.z.values,
-        test_size=0.2, stratify=train_df.coverage_class, random_state=1337)
 
-    # load Model and validate
-    model = load_model(args.model_path)
-    preds_valid = model.predict(x_valid).reshape(-1, img_size_target, img_size_target)
-    preds_valid = np.array([downsample(x) for x in preds_valid])
-    y_valid_ori = np.array([train_df.loc[idx].masks for idx in ids_valid])
+    preds_valid = np.array(pred_list)
+    y_valid_ori = np.array([train_df.loc[idx].masks for idx in v_loader.ids_valid])
 
     #score
     thresholds = np.linspace(0, 1, 50)
@@ -70,7 +69,7 @@ def test(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Hyperparams')
-    parser.add_argument('--model_path', nargs='?', type=str, default='./saved_models/unet_keras.model',
+    parser.add_argument('--model_path', nargs='?', type=str, default='./saved_models/unet_salt_best_model.pkl',
                         help='Path to the saved model')
     parser.add_argument('--dataset', nargs='?', type=str, default='TGS',
                         help='Dataset to use [\' TGS etc\']')

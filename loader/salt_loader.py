@@ -11,7 +11,7 @@ from sklearn.model_selection import train_test_split
 
 class SaltLoader(data.Dataset):
     def __init__(self, root, split="train",img_size_ori=101,img_size_target=128,
-                 img_norm=False,channels=1):
+                 img_norm=False,split_size=0.2):
         self.root = root
         self.split=split
         self.img_norm = img_norm
@@ -25,8 +25,6 @@ class SaltLoader(data.Dataset):
         test_df = depths_df[~depths_df.index.isin(train_df.index)]
 
         # Get and resize train images and masks
-        X_train = np.zeros((len(train_df), img_size_target, img_size_target, channels), dtype=np.uint8)
-        Y_train = np.zeros((len(train_df), img_size_target, img_size_target, 1), dtype=np.bool_)
         print('Getting and resizing train images and masks ... ')
 
         train_df["images"] = [
@@ -38,31 +36,22 @@ class SaltLoader(data.Dataset):
 
         train_df["coverage"] = train_df.masks.map(np.sum) / pow(img_size_ori, 2)
         train_df["coverage_class"] = train_df.coverage.map(self.cov_to_class)
-        '''
-        for n,idx in tqdm_notebook(enumerate(train_df.index),total=len(train_df.index)):
-            img = io.imread(self.root+"train/images/{}.png".format(idx))
-            x = resize(img, (128, 128, 1), mode='constant', preserve_range=True)
-            X_train[n]=x
-            #train_df["images"]=np.array(x,dtype=np.uint8)
-            mask = io.imread(self.root+"train/masks/{}.png".format(idx))
-            y=resize(mask, (128, 128, 1),mode='constant',preserve_range=True)
-            Y_train[n]=y
-            #train_df["masks"]=np.array(y,dtype=np.bool_)
-
-        X_train_shaped = X_train.reshape(-1, 1, 128, 128) / 255
-        Y_train_shaped = Y_train.reshape(-1, 1, 128, 128)
-        X_train_shaped = X_train_shaped.astype(np.float32)
-        Y_train_shaped = Y_train_shaped.astype(np.float32)
-        '''
 
         # split data
-        ids_train, ids_valid, x_train, x_valid, y_train, y_valid, cov_train, cov_test, depth_train, depth_test = train_test_split(
+        self.ids_train, self.ids_valid, x_train, x_valid, y_train, y_valid, cov_train, cov_test, depth_train, depth_test = train_test_split(
             train_df.index.values,
             np.array(train_df.images.map(self.upsample).tolist(),dtype=np.float32).reshape(-1, 1,img_size_target, img_size_target),
             np.array(train_df.masks.map(self.upsample).tolist(),dtype=np.float32).astype(np.float32).reshape(-1,1, img_size_target, img_size_target),
             train_df.coverage.values,
             train_df.z.values,
-            test_size=0.2, stratify=train_df.coverage_class, random_state=1337)
+            test_size=split_size, stratify=train_df.coverage_class, random_state=1337)
+
+        #flip images
+        x_train = np.append(x_train, [np.fliplr(x) for x in x_train], axis=0)
+        y_train = np.append(y_train, [np.fliplr(x) for x in y_train], axis=0)
+
+        self.train_df=train_df
+        self.test_df=test_df
 
         if split=="train":
             self.images=x_train
