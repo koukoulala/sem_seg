@@ -19,12 +19,9 @@ class double_conv(nn.Module):
         return x
 
 
-start_fm = 16
-
-
 class Unet(nn.Module):
 
-    def __init__(self):
+    def __init__(self,start_fm=16):
         super(Unet, self).__init__()
 
         # Input 128x128x1

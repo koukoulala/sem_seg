@@ -17,14 +17,15 @@ def test(args):
     # Setup Dataloader
     data_json = json.load(open('config.json'))
     data_path = data_json[args.dataset]['data_path']
+    model_path = data_json[args.model]['model_path']
+
     t_loader = SaltLoader(data_path, split="test")
     test_df=t_loader.test_df
-
     test_loader = data.DataLoader(t_loader, batch_size=args.batch_size, num_workers=8)
 
     # load Model
-    model = Unet()
-    model.load_state_dict(torch.load(args.model_path)['model_state'])
+    model = Unet(start_fm=16)
+    model.load_state_dict(torch.load(model_path)['model_state'])
     model.cuda()
 
     #test
@@ -32,12 +33,12 @@ def test(args):
     for images in test_loader:
         images = Variable(images.cuda())
         y_preds = model(images)
-        y_preds_shaped = y_preds.reshape(-1, 128, 128)
+        y_preds_shaped = y_preds.reshape(-1,  args.img_size_target, args.img_size_target)
         for idx in range(args.batch_size):
             y_pred = y_preds_shaped[idx]
             pred = torch.sigmoid(y_pred)
             pred = pred.cpu().data.numpy()
-            pred_ori = resize(pred, (101, 101), mode='constant', preserve_range=True)
+            pred_ori = resize(pred, (args.img_size_ori, args.img_size_ori), mode='constant', preserve_range=True)
             pred_list.append(pred_ori)
 
     #submit the test image predictions.
@@ -51,9 +52,9 @@ def test(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Hyperparams')
-    parser.add_argument('--model_path', nargs='?', type=str, default='./saved_models/jupyter_unet_salt_best_model.pkl',
+    parser.add_argument('--model_path', nargs='?', type=str, default='unet_best',
                         help='Path to the saved model')
-    parser.add_argument('--dataset', nargs='?', type=str, default='TGS',
+    parser.add_argument('--dataset', nargs='?', type=str, default='salt',
                         help='Dataset to use [\' TGS etc\']')
     parser.add_argument('--img_size_ori', nargs='?', type=int, default=101,
                         help='Height of the input image')
@@ -66,6 +67,8 @@ if __name__ == '__main__':
                         help='Disable input image scales normalization [0, 1] | True by default')
     parser.set_defaults(img_norm=False)
 
+    parser.add_argument('--threshold', nargs='?', type=float, default=0.5,
+                        help='best threshold from validate')
 
     args = parser.parse_args()
     test(args)

@@ -1,10 +1,14 @@
 {
-  "TGS":
-  {
-    "data_path": "/nfs/private/kaggle/"
-  },
   "salt":
   {
     "data_path": "/nfs/private/kaggle/"
+  },
+  "unet_best":
+  {
+    "model_path":"./saved_models/unet_salt_best_model.pkl"
+  },
+  "unet_final":
+  {
+    "model_path":"./saved_models/unet_salt_final_model.pkl"
   }
 }

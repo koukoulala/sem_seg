@@ -3,7 +3,6 @@ import torch
 import argparse
 import torch.nn as nn
 import numpy as np
-from sklearn.metrics import jaccard_similarity_score
 from torch.utils import data
 
 from torch.autograd import Variable
@@ -27,7 +26,7 @@ def train(args):
     model = Unet()
     print(model)
 
-    model.cuda()
+    model.cuda(start_fm=16)
 
     # Check if model has custom optimizer / loss
     optimizer = torch.optim.Adam(model.parameters(), lr=args.l_rate)
@@ -72,7 +71,11 @@ def train(args):
         # Print Loss
         print('Epoch: {}. Train Loss: {}. Val Loss: {}'.format(epoch + 1, np.mean(train_losses), np.mean(val_losses)))
 
-    print("saved model in ./saved_models/{}_{}_best_model.pkl".format(args.arch, args.dataset))
+    state = {'model_state': model.state_dict(),
+             'optimizer_state': optimizer.state_dict(), }
+    torch.save(state, "./saved_models/{}_{}_final_model.pkl".format(args.arch, args.dataset))
+
+    print("saved two models in ./saved_models")
 
 
 if __name__ == '__main__':
@@ -80,7 +83,7 @@ if __name__ == '__main__':
     parser.add_argument('--arch', nargs='?', type=str, default='unet',
                         help='Architecture to use [\' unet, segnet etc\']')
     parser.add_argument('--dataset', nargs='?', type=str, default='salt',
-                        help='Dataset to use [\' TGS etc\']')
+                        help='Dataset to use [\' salt etc\']')
     parser.add_argument('--img_size_ori', nargs='?', type=int, default=101,
                         help='Height of the input image')
     parser.add_argument('--img_size_target', nargs='?', type=int, default=128,

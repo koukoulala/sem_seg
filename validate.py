@@ -18,14 +18,16 @@ def test(args):
     # Setup Dataloader
     data_json = json.load(open('config.json'))
     data_path = data_json[args.dataset]['data_path']
+    model_path = data_json[args.model]['model_path']
+
     v_loader = SaltLoader(data_path, split='val', split_size=0.5)
     train_df=v_loader.train_df
 
     val_loader = data.DataLoader(v_loader, batch_size=args.batch_size, num_workers=8)
 
     # load Model
-    model = Unet()
-    model.load_state_dict(torch.load(args.model_path)['model_state'])
+    model = Unet(start_fm=16)
+    model.load_state_dict(torch.load(model_path)['model_state'])
     model.cuda()
     model.eval()
 
@@ -35,12 +37,12 @@ def test(args):
         images = Variable(images.cuda())
         y_preds = model(images)
         # print(y_preds.shape)
-        y_preds_shaped = y_preds.reshape(-1, 128, 128)
+        y_preds_shaped = y_preds.reshape(-1, args.img_size_target, args.img_size_target)
         for idx in range(args.batch_size):
             y_pred = y_preds_shaped[idx]
             pred = torch.sigmoid(y_pred)
             pred = pred.cpu().data.numpy()
-            pred_ori = resize(pred, (101, 101), mode='constant', preserve_range=True)
+            pred_ori = resize(pred, (args.img_size_ori, args.img_size_ori), mode='constant', preserve_range=True)
             pred_list.append(pred_ori)
 
 
@@ -66,13 +68,13 @@ def test(args):
     threshold_best_index = np.argmax(ious[9:-10]) + 9
     iou_best = ious[threshold_best_index]
     threshold_best = thresholds[threshold_best_index]
-    print(iou_best,threshold_best)
+    print("iou_best=",iou_best,"threshold_best=",threshold_best)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Hyperparams')
-    parser.add_argument('--model_path', nargs='?', type=str, default='./saved_models/unet_salt_best_model.pkl',
-                        help='Path to the saved model')
+    parser.add_argument('--model', nargs='?', type=str, default='unet_best',
+                        help='Path to the saved model,eg:unet_best,unet_final')
     parser.add_argument('--dataset', nargs='?', type=str, default='salt',
                         help='Dataset to use [\' TGS etc\']')
     parser.add_argument('--img_size_ori', nargs='?', type=int, default=101,
