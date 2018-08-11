@@ -2,6 +2,7 @@ import json
 import argparse
 import torch
 from skimage.transform import resize
+from sklearn.metrics import jaccard_similarity_score
 
 from torch.autograd import Variable
 import pandas as pd
@@ -17,21 +18,23 @@ def test(args):
     # Setup Dataloader
     data_json = json.load(open('config.json'))
     data_path = data_json[args.dataset]['data_path']
-    t_loader = SaltLoader(data_path, split='test')
-    test_df=t_loader.test_df
+    v_loader = SaltLoader(data_path, split='val', split_size=0.5)
+    train_df=v_loader.train_df
 
-    val_loader = data.DataLoader(t_loader, batch_size=args.batch_size, num_workers=8)
+    val_loader = data.DataLoader(v_loader, batch_size=args.batch_size, num_workers=8)
 
     # load Model
     model = Unet()
     model.load_state_dict(torch.load(args.model_path)['model_state'])
     model.cuda()
+    model.eval()
 
-    #test
+    #validate
     pred_list=[]
-    for images in val_loader:
+    for images, masks in val_loader:
         images = Variable(images.cuda())
         y_preds = model(images)
+        # print(y_preds.shape)
         y_preds_shaped = y_preds.reshape(-1, 128, 128)
         for idx in range(args.batch_size):
             y_pred = y_preds_shaped[idx]
@@ -40,20 +43,38 @@ def test(args):
             pred_ori = resize(pred, (101, 101), mode='constant', preserve_range=True)
             pred_list.append(pred_ori)
 
-    #submit the test image predictions.
-    threshold_best=0.5
-    pred_dict = {idx: RLenc(np.round(pred_list[i] > threshold_best)) for i, idx in
-                 enumerate(tqdm_notebook(test_df.index.values))}
-    sub = pd.DataFrame.from_dict(pred_dict, orient='index')
-    sub.index.names = ['id']
-    sub.columns = ['rle_mask']
-    sub.to_csv('./results/submission.csv')
+
+    preds_valid = np.array(pred_list)
+    y_valid_ori = np.array([train_df.loc[idx].masks for idx in v_loader.ids_valid])
+
+    #jaccard
+    for threshold in np.linspace(0, 1, 11):
+
+        ious = []
+        for y_pred, mask in zip(preds_valid, y_valid_ori):
+            prediction = (y_pred > threshold).astype(int)
+            iou = jaccard_similarity_score(mask.flatten(), prediction.flatten())
+            ious.append(iou)
+
+        accuracies = [np.mean(ious > iou_threshold)
+                      for iou_threshold in np.linspace(0.5, 0.95, 10)]
+        print('Threshold: %.1f, Metric: %.3f' % (threshold, np.mean(accuracies)))
+
+    #score
+    thresholds = np.linspace(0, 1, 50)
+    ious = np.array(
+        [iou_metric_batch(y_valid_ori, np.int32(preds_valid > threshold)) for threshold in tqdm_notebook(thresholds)])
+    threshold_best_index = np.argmax(ious[9:-10]) + 9
+    iou_best = ious[threshold_best_index]
+    threshold_best = thresholds[threshold_best_index]
+    print(iou_best,threshold_best)
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Hyperparams')
-    parser.add_argument('--model_path', nargs='?', type=str, default='./saved_models/pytorch_unet_salt_best_model.pkl',
+    parser.add_argument('--model_path', nargs='?', type=str, default='./saved_models/unet_salt_best_model.pkl',
                         help='Path to the saved model')
-    parser.add_argument('--dataset', nargs='?', type=str, default='TGS',
+    parser.add_argument('--dataset', nargs='?', type=str, default='salt',
                         help='Dataset to use [\' TGS etc\']')
     parser.add_argument('--img_size_ori', nargs='?', type=int, default=101,
                         help='Height of the input image')

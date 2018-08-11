@@ -74,29 +74,6 @@ def train(args):
 
     print("saved model in ./saved_models/{}_{}_best_model.pkl".format(args.arch, args.dataset))
 
-    y_pred_true_pairs = []
-    for images, masks in val_loader:
-        images = Variable(images.cuda())
-        y_preds = model(images)
-        for i, _ in enumerate(images):
-            y_pred = y_preds[i]
-            y_pred = torch.sigmoid(y_pred)
-            y_pred = y_pred.cpu().data.numpy()
-            y_pred_true_pairs.append((y_pred, masks[i].numpy()))
-
-    # https://www.kaggle.com/leighplt/goto-pytorch-fix-for-v0-3
-    for threshold in np.linspace(0, 1, 11):
-
-        ious = []
-        for y_pred, mask in y_pred_true_pairs:
-            prediction = (y_pred > threshold).astype(int)
-            iou = jaccard_similarity_score(mask.flatten(), prediction.flatten())
-            ious.append(iou)
-
-        accuracies = [np.mean(ious > iou_threshold)
-                      for iou_threshold in np.linspace(0.5, 0.95, 10)]
-        print('Threshold: %.1f, Metric: %.3f' % (threshold, np.mean(accuracies)))
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Hyperparams')

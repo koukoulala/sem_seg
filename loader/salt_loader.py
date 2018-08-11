@@ -27,40 +27,48 @@ class SaltLoader(data.Dataset):
         # Get and resize train images and masks
         print('Getting and resizing train images and masks ... ')
 
-        train_df["images"] = [
-            np.array(io.imread(self.root + "train/images/{}.png".format(idx), as_grey=True), dtype=np.float32) for idx
-            in tqdm_notebook(train_df.index)]
-        train_df["masks"] = [
-            np.array(io.imread(self.root + "train/masks/{}.png".format(idx), as_grey=True), dtype=np.bool_) for idx in
-            tqdm_notebook(train_df.index)]
+        if split!="test":
+            train_df["images"] = [
+                np.array(io.imread(self.root + "train/images/{}.png".format(idx), as_grey=True), dtype=np.float32) for
+                idx
+                in tqdm_notebook(train_df.index)]
+            train_df["masks"] = [
+                np.array(io.imread(self.root + "train/masks/{}.png".format(idx), as_grey=True), dtype=np.bool_) for idx
+                in
+                tqdm_notebook(train_df.index)]
 
-        train_df["coverage"] = train_df.masks.map(np.sum) / pow(img_size_ori, 2)
-        train_df["coverage_class"] = train_df.coverage.map(self.cov_to_class)
+            train_df["coverage"] = train_df.masks.map(np.sum) / pow(img_size_ori, 2)
+            train_df["coverage_class"] = train_df.coverage.map(self.cov_to_class)
 
-        # split data
-        self.ids_train, self.ids_valid, x_train, x_valid, y_train, y_valid, cov_train, cov_test, depth_train, depth_test = train_test_split(
-            train_df.index.values,
-            np.array(train_df.images.map(self.upsample).tolist(),dtype=np.float32).reshape(-1, 1,img_size_target, img_size_target),
-            np.array(train_df.masks.map(self.upsample).tolist(),dtype=np.float32).astype(np.float32).reshape(-1,1, img_size_target, img_size_target),
-            train_df.coverage.values,
-            train_df.z.values,
-            test_size=split_size, stratify=train_df.coverage_class, random_state=1337)
+            # split data
+            self.ids_train, self.ids_valid, x_train, x_valid, y_train, y_valid, cov_train, cov_test, depth_train, depth_test = train_test_split(
+                train_df.index.values,
+                np.array(train_df.images.map(self.upsample).tolist(), dtype=np.float32).reshape(-1, 1, img_size_target,
+                                                                                                img_size_target),
+                np.array(train_df.masks.map(self.upsample).tolist(), dtype=np.float32).astype(np.float32).reshape(-1, 1,
+                                                                                                                  img_size_target,
+                                                                                                                  img_size_target),
+                train_df.coverage.values,
+                train_df.z.values,
+                test_size=split_size, stratify=train_df.coverage_class, random_state=1337)
 
-        #flip images
-        x_train = np.append(x_train, [np.fliplr(x) for x in x_train], axis=0)
-        y_train = np.append(y_train, [np.fliplr(x) for x in y_train], axis=0)
+            # flip images
+            x_train = np.append(x_train, [np.fliplr(x) for x in x_train], axis=0)
+            y_train = np.append(y_train, [np.fliplr(x) for x in y_train], axis=0)
+            self.train_df = train_df
 
-        self.train_df=train_df
-        self.test_df=test_df
-
-        if split=="train":
-            self.images=x_train
-            self.masks=y_train
-        elif split=="val":
-            self.images=x_valid
-            self.masks=y_valid
+            if split == "train":
+                self.images = x_train
+                self.masks = y_train
+            elif split == "val":
+                self.images = x_valid
+                self.masks = y_valid
         else:
-            print("not done")
+            self.test_df=test_df
+            self.x_test=[
+                np.array(io.imread(self.root + "images/{}.png".format(idx), as_grey=True), dtype=np.float32) for
+                idx
+                in tqdm_notebook(test_df.index)]
 
     def __len__(self):
         return len(self.images)
