@@ -56,6 +56,8 @@ class SaltLoader(data.Dataset):
             x_train = np.append(x_train, [np.fliplr(x) for x in x_train], axis=0)
             y_train = np.append(y_train, [np.fliplr(x) for x in y_train], axis=0)
 
+            self.train_df = train_df
+
             if split == "train":
                 self.images = x_train
                 self.masks = y_train
@@ -63,14 +65,13 @@ class SaltLoader(data.Dataset):
                 self.images = x_valid
                 self.masks = y_valid
         else:
-            self.test_df=test_df
             test_df["images"]=[
                 np.array(io.imread(self.root + "images/{}.png".format(idx), as_grey=True), dtype=np.float32) for
                 idx
                 in tqdm_notebook(test_df.index)]
             self.images=np.array(test_df.images.map(self.upsample).tolist(), dtype=np.float32).reshape(-1, 1, img_size_target,
                                                                                                 img_size_target)
-            self.train_df = train_df
+            self.test_df = test_df
 
 
     def __len__(self):
