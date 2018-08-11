@@ -52,7 +52,7 @@ def test(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Hyperparams')
-    parser.add_argument('--model_path', nargs='?', type=str, default='unet_best',
+    parser.add_argument('--model', nargs='?', type=str, default='unet_best',
                         help='Path to the saved model')
     parser.add_argument('--dataset', nargs='?', type=str, default='salt',
                         help='Dataset to use [\' TGS etc\']')
