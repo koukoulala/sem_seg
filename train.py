@@ -59,15 +59,15 @@ def train(args):
             loss = loss_fn(outputs, masks)
             val_losses.append(loss.data)
 
-            if loss<best_loss:
-                best_loss=loss
-                state = {'epoch': epoch + 1,
-                         'model_state': model.state_dict(),
-                         'optimizer_state': optimizer.state_dict(), }
-                torch.save(state, "./saved_models/{}_{}_best_model.pkl".format(args.arch, args.dataset))
-
         mean_train_losses.append(np.mean(train_losses))
         mean_val_losses.append(np.mean(val_losses))
+        if mean_val_losses < best_loss:
+            best_loss = mean_val_losses
+            state = {'epoch': epoch + 1,
+                     'model_state': model.state_dict(),
+                     'optimizer_state': optimizer.state_dict(), }
+            torch.save(state, "./saved_models/{}_{}_best_model.pkl".format(args.arch, args.dataset))
+
         # Print Loss
         print('Epoch: {}. Train Loss: {}. Val Loss: {}'.format(epoch + 1, np.mean(train_losses), np.mean(val_losses)))
 
