@@ -23,10 +23,10 @@ def train(args):
     val_loader = data.DataLoader(v_loader, batch_size=args.batch_size, num_workers=8)
 
     # Setup Model
-    model = Unet()
+    model = Unet(start_fm=16)
     print(model)
 
-    model.cuda(start_fm=16)
+    model.cuda()
 
     # Check if model has custom optimizer / loss
     optimizer = torch.optim.Adam(model.parameters(), lr=args.l_rate)
