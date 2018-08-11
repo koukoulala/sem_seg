@@ -49,7 +49,6 @@ def test(args):
 
     #jaccard
     for threshold in np.linspace(0, 1, 11):
-
         ious = []
         for y_pred, mask in zip(preds_valid, y_valid_ori):
             prediction = (y_pred > threshold).astype(int)

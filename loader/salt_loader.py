@@ -65,10 +65,13 @@ class SaltLoader(data.Dataset):
                 self.masks = y_valid
         else:
             self.test_df=test_df
-            self.images=[
+            test_df["images"]=[
                 np.array(io.imread(self.root + "images/{}.png".format(idx), as_grey=True), dtype=np.float32) for
                 idx
                 in tqdm_notebook(test_df.index)]
+            self.images=np.array(test_df.images.map(self.upsample).tolist(), dtype=np.float32).reshape(-1, 1, img_size_target,
+                                                                                                img_size_target)
+
 
     def __len__(self):
         return len(self.images)
