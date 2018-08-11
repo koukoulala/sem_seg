@@ -55,7 +55,6 @@ class SaltLoader(data.Dataset):
             # flip images
             x_train = np.append(x_train, [np.fliplr(x) for x in x_train], axis=0)
             y_train = np.append(y_train, [np.fliplr(x) for x in y_train], axis=0)
-            self.train_df = train_df
 
             if split == "train":
                 self.images = x_train
@@ -71,6 +70,7 @@ class SaltLoader(data.Dataset):
                 in tqdm_notebook(test_df.index)]
             self.images=np.array(test_df.images.map(self.upsample).tolist(), dtype=np.float32).reshape(-1, 1, img_size_target,
                                                                                                 img_size_target)
+            self.train_df = train_df
 
 
     def __len__(self):
@@ -78,10 +78,11 @@ class SaltLoader(data.Dataset):
 
     def __getitem__(self, idx):
         image = self.images[idx]
-        mask = None
         if self.split!="test":
             mask = self.masks[idx]
-        return (image, mask)
+            return (image, mask)
+        else:
+            return image
 
 
     def cov_to_class(self,val):
