@@ -65,7 +65,7 @@ class SaltLoader(data.Dataset):
                 self.masks = y_valid
         else:
             self.test_df=test_df
-            self.x_test=[
+            self.images=[
                 np.array(io.imread(self.root + "images/{}.png".format(idx), as_grey=True), dtype=np.float32) for
                 idx
                 in tqdm_notebook(test_df.index)]

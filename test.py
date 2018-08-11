@@ -17,10 +17,10 @@ def test(args):
     # Setup Dataloader
     data_json = json.load(open('config.json'))
     data_path = data_json[args.dataset]['data_path']
-    t_loader = SaltLoader(data_path, split='test')
+    t_loader = SaltLoader(data_path, split="test")
     test_df=t_loader.test_df
 
-    val_loader = data.DataLoader(t_loader, batch_size=args.batch_size, num_workers=8)
+    test_loader = data.DataLoader(t_loader, batch_size=args.batch_size, num_workers=8)
 
     # load Model
     model = Unet()
@@ -29,7 +29,7 @@ def test(args):
 
     #test
     pred_list=[]
-    for images in val_loader:
+    for images in test_loader:
         images = Variable(images.cuda())
         y_preds = model(images)
         y_preds_shaped = y_preds.reshape(-1, 128, 128)
@@ -51,7 +51,7 @@ def test(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Hyperparams')
-    parser.add_argument('--model_path', nargs='?', type=str, default='./saved_models/pytorch_unet_salt_best_model.pkl',
+    parser.add_argument('--model_path', nargs='?', type=str, default='./saved_models/jupyter_unet_salt_best_model.pkl',
                         help='Path to the saved model')
     parser.add_argument('--dataset', nargs='?', type=str, default='TGS',
                         help='Dataset to use [\' TGS etc\']')
