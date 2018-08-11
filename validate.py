@@ -88,6 +88,9 @@ if __name__ == '__main__':
                         help='Disable input image scales normalization [0, 1] | True by default')
     parser.set_defaults(img_norm=False)
 
+    parser.add_argument('--batch_size', nargs='?', type=int, default=16,
+                        help='Batch Size')
+
 
     args = parser.parse_args()
     test(args)
