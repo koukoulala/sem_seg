@@ -49,6 +49,7 @@ def test(args):
     sub.index.names = ['id']
     sub.columns = ['rle_mask']
     sub.to_csv('./results/submission.csv')
+    print("The submission.csv saved in ./results")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Hyperparams')
