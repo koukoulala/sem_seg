@@ -61,8 +61,8 @@ def train(args):
 
         mean_train_losses.append(np.mean(train_losses))
         mean_val_losses.append(np.mean(val_losses))
-        if mean_val_losses < best_loss:
-            best_loss = mean_val_losses
+        if np.mean(val_losses) < best_loss:
+            best_loss = np.mean(val_losses)
             state = {'epoch': epoch + 1,
                      'model_state': model.state_dict(),
                      'optimizer_state': optimizer.state_dict(), }

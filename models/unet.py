@@ -9,6 +9,8 @@ class double_conv(nn.Module):
                       stride=stride, padding=padding),
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True),
+            #not true dropout,try
+            #nn.Dropout(0.2),
             nn.Conv2d(out_channels, out_channels, kernel_size=kernel_size,
                       stride=stride, padding=padding),
             nn.BatchNorm2d(out_channels),
