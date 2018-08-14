@@ -60,8 +60,8 @@ def test(args):
 
         accuracies = [np.mean(ious > iou_threshold)
                       for iou_threshold in np.linspace(0.5, 0.95, 10)]
-        if accuracies_best<accuracies:
-            accuracies_best=accuracies
+        if accuracies_best<np.mean(accuracies):
+            accuracies_best=np.mean(accuracies)
             threshold_best=threshold
         print('Threshold: %.1f, Metric: %.3f' % (threshold, np.mean(accuracies)))
     print("jaccard score gets threshold_best=",threshold_best)
