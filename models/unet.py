@@ -10,7 +10,7 @@ class double_conv(nn.Module):
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True),
             #not true dropout,try
-            #nn.Dropout(0.2),
+            nn.Dropout(0.2),
             nn.Conv2d(out_channels, out_channels, kernel_size=kernel_size,
                       stride=stride, padding=padding),
             nn.BatchNorm2d(out_channels),
@@ -76,8 +76,8 @@ class Unet(nn.Module):
         # One by One Conv
         self.one_by_one = nn.Conv2d(start_fm, 1, 1, 1, 0)
 
-        #not sure
-        self.final_act = nn.Sigmoid()
+        #bad performance
+        #self.final_act = nn.Sigmoid()
 
     def forward(self, inputs):
         # Contracting Path
@@ -114,6 +114,6 @@ class Unet(nn.Module):
         ex_conv1 = self.ex_double_conv1(cat1)
 
         one_by_one = self.one_by_one(ex_conv1)
-        one_with_sigmoid=self.final_act(one_by_one)
+        #one_with_sigmoid=self.final_act(one_by_one)
 
-        return one_with_sigmoid
+        return one_by_one
