@@ -73,7 +73,9 @@ class Unet(nn.Module):
 
         # One by One Conv
         self.one_by_one = nn.Conv2d(start_fm, 1, 1, 1, 0)
-        # self.final_act = nn.Sigmoid()
+
+        #not sure
+        self.final_act = nn.Sigmoid()
 
     def forward(self, inputs):
         # Contracting Path
@@ -110,5 +112,6 @@ class Unet(nn.Module):
         ex_conv1 = self.ex_double_conv1(cat1)
 
         one_by_one = self.one_by_one(ex_conv1)
+        one_with_sigmoid=self.final_act(one_by_one)
 
-        return one_by_one
+        return one_with_sigmoid
