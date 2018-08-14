@@ -65,6 +65,7 @@ class Unet(nn.Module):
         self.t_conv2 = nn.ConvTranspose2d(start_fm * 4, start_fm * 2, 2, 2)
         # Convolution 2
         self.ex_double_conv2 = double_conv(start_fm * 4, start_fm * 2, 3, 1, 1)
+
         # Transposed Convolution 1
         self.t_conv1 = nn.ConvTranspose2d(start_fm * 2, start_fm, 2, 2)
         # Convolution 1

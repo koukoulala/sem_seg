@@ -49,7 +49,8 @@ def test(args):
     preds_valid = np.array(pred_list)
     y_valid_ori = np.array([train_df.loc[idx].masks for idx in v_loader.ids_valid])
 
-    #jaccard
+    #jaccard score
+    accuracies_best=0.0
     for threshold in np.linspace(0, 1, 11):
         ious = []
         for y_pred, mask in zip(preds_valid, y_valid_ori):
@@ -59,16 +60,20 @@ def test(args):
 
         accuracies = [np.mean(ious > iou_threshold)
                       for iou_threshold in np.linspace(0.5, 0.95, 10)]
+        if accuracies_best<accuracies:
+            accuracies_best=accuracies
+            threshold_best=threshold
         print('Threshold: %.1f, Metric: %.3f' % (threshold, np.mean(accuracies)))
+    print("jaccard score gets threshold_best=",threshold_best)
 
-    #score
+    #other score way
     thresholds = np.linspace(0, 1, 50)
     ious = np.array(
         [iou_metric_batch(y_valid_ori, np.int32(preds_valid > threshold)) for threshold in tqdm_notebook(thresholds)])
     threshold_best_index = np.argmax(ious[9:-10]) + 9
     iou_best = ious[threshold_best_index]
     threshold_best = thresholds[threshold_best_index]
-    print("iou_best=",iou_best,"threshold_best=",threshold_best)
+    print("other way gets iou_best=",iou_best,"threshold_best=",threshold_best)
 
 
 if __name__ == '__main__':
@@ -76,7 +81,7 @@ if __name__ == '__main__':
     parser.add_argument('--model', nargs='?', type=str, default='unet_best',
                         help='Path to the saved model,eg:unet_best,unet_final')
     parser.add_argument('--dataset', nargs='?', type=str, default='salt',
-                        help='Dataset to use [\' TGS etc\']')
+                        help='Dataset to use [\' salt etc\']')
     parser.add_argument('--img_size_ori', nargs='?', type=int, default=101,
                         help='Height of the input image')
     parser.add_argument('--img_size_target', nargs='?', type=int, default=128,

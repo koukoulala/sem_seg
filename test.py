@@ -42,13 +42,13 @@ def test(args):
             pred_list.append(pred_ori)
 
     #submit the test image predictions.
-    threshold_best=0.5
+    threshold_best=args.threshold
     pred_dict = {idx: RLenc(np.round(pred_list[i] > threshold_best)) for i, idx in
                  enumerate(tqdm_notebook(test_df.index.values))}
     sub = pd.DataFrame.from_dict(pred_dict, orient='index')
     sub.index.names = ['id']
     sub.columns = ['rle_mask']
-    sub.to_csv('./results/submission.csv')
+    sub.to_csv('./results/{}_submission.csv'.format(args.model))
     print("The submission.csv saved in ./results")
 
 if __name__ == '__main__':

@@ -95,7 +95,7 @@ if __name__ == '__main__':
                         help='Disable input image scales normalization [0, 1] | True by default')
     parser.set_defaults(img_norm=False)
 
-    parser.add_argument('--n_epoch', nargs='?', type=int, default=10,
+    parser.add_argument('--n_epoch', nargs='?', type=int, default=100,
                         help='# of the epochs')
     parser.add_argument('--batch_size', nargs='?', type=int, default=16,
                         help='Batch Size')
