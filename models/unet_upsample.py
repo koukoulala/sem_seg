@@ -23,7 +23,7 @@ class up_conv(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size=3, stride=1, padding=1,scale_factor=2):
         super(up_conv, self).__init__()
         self.conv = nn.Sequential(
-            nn.UpsamplingBilinear2d(scale_factor),
+            nn.UpsamplingBilinear2d(scale_factor=scale_factor),
             nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size,
                       stride=stride, padding=padding),
             nn.ReLU(inplace=True)
@@ -38,38 +38,39 @@ class Unet_upsample(nn.Module):
     def __init__(self,start_fm=16):
         super(Unet_upsample, self).__init__()
 
-        # Input 128x128x1
+        # Input size= batchx1x128x128
 
         # Contracting Path
 
-        # (Double) Convolution 1
+        # (Double) Convolution 1 ——>size=batchx16x128x128
         self.double_conv1 = double_conv(1, start_fm, 3, 1, 1)
-        # Max Pooling 1
+        # Max Pooling 1 ——>size=batchx16x64x64
         self.maxpool1 = nn.MaxPool2d(kernel_size=2)
 
-        # Convolution 2
+        # Convolution 2 ——>size=batchx32x64x64
         self.double_conv2 = double_conv(start_fm, start_fm * 2, 3, 1, 1)
-        # Max Pooling 2
+        # Max Pooling 2 ——>size=batchx32x32x32
         self.maxpool2 = nn.MaxPool2d(kernel_size=2)
 
-        # Convolution 3
+        # Convolution 3 ——>size=batchx64x32x32
         self.double_conv3 = double_conv(start_fm * 2, start_fm * 4, 3, 1, 1)
-        # Max Pooling 3
+        # Max Pooling 3 ——>size=batchx64x16x16
         self.maxpool3 = nn.MaxPool2d(kernel_size=2)
 
-        # Convolution 4
+        # Convolution 4 ——>size=batchx128x16x16
         self.double_conv4 = double_conv(start_fm * 4, start_fm * 8, 3, 1, 1)
-        # Max Pooling 4
+        # Max Pooling 4 ——>size=batchx128x8x8
         self.maxpool4 = nn.MaxPool2d(kernel_size=2)
 
-        # Convolution 5
+        # Convolution 5 ——>size=batchx256x8x8
         self.double_conv5 = double_conv(start_fm * 8, start_fm * 16, 3, 1, 1)
+        # Max Pooling 5 ——>size=batchx256x4x4
         self.maxpool5 = nn.MaxPool2d(kernel_size=2)
 
-        # Convolution 6
+        # Convolution 6 ——>size=batchx512x4x4
         self.double_conv6 = double_conv(start_fm * 16, start_fm * 32, 3, 1, 1)
-        # Dropout
-        #self.dropout=nn.Dropout(0.5)
+        # Dropout ——>size=batchx512x4x4
+        self.dropout=nn.Dropout(0.5)
 
         # Transposed Convolution 5
         self.t_conv5 = up_conv(start_fm * 32, start_fm * 16, 2, 1,1,2)
@@ -119,10 +120,10 @@ class Unet_upsample(nn.Module):
 
         # Bottom
         conv6 = self.double_conv6(maxpool5)
-        #drop_bottom=self.dropout(conv6)
+        drop_bottom=self.dropout(conv6)
 
         # Expanding Path
-        t_conv5 = self.t_conv5(conv6)
+        t_conv5 = self.t_conv5(drop_bottom)
         cat5 = torch.cat([conv5, t_conv5], 1)
         ex_conv5 = self.ex_double_conv5(cat5)
 
