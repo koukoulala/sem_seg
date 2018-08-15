@@ -7,17 +7,31 @@ class double_conv(nn.Module):
         self.conv = nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size,
                       stride=stride, padding=padding),
-            nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True),
+            nn.BatchNorm2d(out_channels),
             nn.Conv2d(out_channels, out_channels, kernel_size=kernel_size,
                       stride=stride, padding=padding),
-            nn.BatchNorm2d(out_channels),
-            nn.ReLU(inplace=True))
+            nn.ReLU(inplace=True),
+            nn.BatchNorm2d(out_channels)
+        )
 
     def forward(self, x):
         x = self.conv(x)
         return x
 
+class up_conv(nn.Module):
+    def __init__(self, in_channels, out_channels, kernel_size=3, stride=1, padding=1,scale_factor=2):
+        super(up_conv, self).__init__()
+        self.conv = nn.Sequential(
+            nn.UpsamplingBilinear2d(scale_factor),
+            nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size,
+                      stride=stride, padding=padding),
+            nn.ReLU(inplace=True)
+        )
+
+    def forward(self, x):
+        x = self.conv(x)
+        return x
 
 class Unet(nn.Module):
 
@@ -54,37 +68,37 @@ class Unet(nn.Module):
 
         # Convolution 6
         self.double_conv6 = double_conv(start_fm * 16, start_fm * 32, 3, 1, 1)
+        # Dropout
+        self.dropout=nn.Dropout(0.5)
 
         # Transposed Convolution 5
-        self.t_conv5 = nn.ConvTranspose2d(start_fm * 32, start_fm * 16, 2, 2)
+        self.t_conv5 = up_conv(start_fm * 32, start_fm * 16, 2, 1,1,2)
         # Expanding Path Convolution 5
         self.ex_double_conv5 = double_conv(start_fm * 32, start_fm * 16, 3, 1, 1)
 
         # Transposed Convolution 4
-        self.t_conv4 = nn.ConvTranspose2d(start_fm * 16, start_fm * 8, 2, 2)
+        self.t_conv4 = up_conv(start_fm * 16, start_fm * 8, 2, 1,1,2)
         # Expanding Path Convolution 4
         self.ex_double_conv4 = double_conv(start_fm * 16, start_fm * 8, 3, 1, 1)
 
         # Transposed Convolution 3
-        self.t_conv3 = nn.ConvTranspose2d(start_fm * 8, start_fm * 4, 2, 2)
+        self.t_conv3 = up_conv(start_fm * 8, start_fm * 4, 2, 1,1,2)
         # Convolution 3
         self.ex_double_conv3 = double_conv(start_fm * 8, start_fm * 4, 3, 1, 1)
 
         # Transposed Convolution 2
-        self.t_conv2 = nn.ConvTranspose2d(start_fm * 4, start_fm * 2, 2, 2)
+        self.t_conv2 = up_conv(start_fm * 4, start_fm * 2, 2, 1,1,2)
         # Convolution 2
         self.ex_double_conv2 = double_conv(start_fm * 4, start_fm * 2, 3, 1, 1)
 
         # Transposed Convolution 1
-        self.t_conv1 = nn.ConvTranspose2d(start_fm * 2, start_fm, 2, 2)
+        self.t_conv1 = up_conv(start_fm * 2, start_fm , 2, 1,1,2)
         # Convolution 1
         self.ex_double_conv1 = double_conv(start_fm * 2, start_fm, 3, 1, 1)
 
         # One by One Conv
         self.one_by_one = nn.Conv2d(start_fm, 1, 1, 1, 0)
 
-        #bad performance
-        #self.final_act = nn.Sigmoid()
 
     def forward(self, inputs):
         # Contracting Path
@@ -105,9 +119,10 @@ class Unet(nn.Module):
 
         # Bottom
         conv6 = self.double_conv6(maxpool5)
+        drop_bottom=self.dropout(conv6)
 
         # Expanding Path
-        t_conv5 = self.t_conv5(conv6)
+        t_conv5 = self.t_conv5(drop_bottom)
         cat5 = torch.cat([conv5, t_conv5], 1)
         ex_conv5 = self.ex_double_conv5(cat5)
 
