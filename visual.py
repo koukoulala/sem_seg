@@ -12,6 +12,7 @@ def test(args):
     # Setup Data
     data_json = json.load(open('config.json'))
     x = Variable(torch.randn(32, 1, 128, 128))
+    x = x.cuda()
 
     # load Model
     if args.arch=='unet':
@@ -27,7 +28,7 @@ def test(args):
     #visualize
     y=model(x)
     g=make_dot(y)
-    g.view()
+    g.render('k')
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Hyperparams')

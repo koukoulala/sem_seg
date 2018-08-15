@@ -11,11 +11,11 @@
   {
     "model_path":"./saved_models/unet_salt_final_model.pkl"
   },
-  "unet_sample_best":
+  "unet_upsample_best":
   {
     "model_path":"./saved_models/unet_sample_salt_best_model.pkl"
   },
-  "unet_sample_final":
+  "unet_upsample_final":
   {
     "model_path":"./saved_models/unet_sample_salt_final_model.pkl"
   }
