@@ -9,8 +9,8 @@ class double_conv(nn.Module):
                       stride=stride, padding=padding),
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True),
-            #not true dropout,try
-            nn.Dropout(0.2),
+            #not true dropout,try and bad
+            #nn.Dropout(0.2),
             nn.Conv2d(out_channels, out_channels, kernel_size=kernel_size,
                       stride=stride, padding=padding),
             nn.BatchNorm2d(out_channels),
@@ -52,6 +52,15 @@ class Unet(nn.Module):
 
         # Convolution 5
         self.double_conv5 = double_conv(start_fm * 8, start_fm * 16, 3, 1, 1)
+        self.maxpool5 = nn.MaxPool2d(kernel_size=2)
+
+        # Convolution 6
+        self.double_conv6 = double_conv(start_fm * 16, start_fm * 32, 3, 1, 1)
+
+        # Transposed Convolution 5
+        self.t_conv5 = nn.ConvTranspose2d(start_fm * 32, start_fm * 16, 2, 2)
+        # Expanding Path Convolution 5
+        self.ex_double_conv5 = double_conv(start_fm * 32, start_fm * 16, 3, 1, 1)
 
         # Transposed Convolution 4
         self.t_conv4 = nn.ConvTranspose2d(start_fm * 16, start_fm * 8, 2, 2)
@@ -93,11 +102,18 @@ class Unet(nn.Module):
         conv4 = self.double_conv4(maxpool3)
         maxpool4 = self.maxpool4(conv4)
 
-        # Bottom
         conv5 = self.double_conv5(maxpool4)
+        maxpool5 = self.maxpool5(conv5)
+
+        # Bottom
+        conv6 = self.double_conv6(maxpool5)
 
         # Expanding Path
-        t_conv4 = self.t_conv4(conv5)
+        t_conv5 = self.t_conv5(conv6)
+        cat5 = torch.cat([conv5, t_conv5], 1)
+        ex_conv5 = self.ex_double_conv5(cat5)
+
+        t_conv4 = self.t_conv4(ex_conv5)
         cat4 = torch.cat([conv4, t_conv4], 1)
         ex_conv4 = self.ex_double_conv4(cat4)
 
