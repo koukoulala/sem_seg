@@ -11,6 +11,7 @@ from utils import *
 from loader.salt_loader import SaltLoader
 from tqdm import tqdm_notebook
 from torch.utils import data
+from models.unet_upsample import Unet_upsample
 from models.unet import Unet
 
 def test(args):
@@ -18,7 +19,6 @@ def test(args):
     # Setup Dataloader
     data_json = json.load(open('config.json'))
     data_path = data_json[args.dataset]['data_path']
-    model_path = data_json[args.model]['model_path']
 
     v_loader = SaltLoader(data_path, split='val', split_size=0.5)
     train_df=v_loader.train_df
@@ -26,7 +26,11 @@ def test(args):
     val_loader = data.DataLoader(v_loader, batch_size=args.batch_size, num_workers=8)
 
     # load Model
-    model = Unet(start_fm=16)
+    if args.arch=='unet':
+        model = Unet(start_fm=16)
+    else:
+        model=Unet_upsample(start_fm=16)
+    model_path = data_json[args.model]['model_path']
     model.load_state_dict(torch.load(model_path)['model_state'])
     model.cuda()
     model.eval()
@@ -79,6 +83,8 @@ def test(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Hyperparams')
+    parser.add_argument('--arch', nargs='?', type=str, default='unet',
+                        help='Architecture to use [\' unet, unet_sample etc\']')
     parser.add_argument('--model', nargs='?', type=str, default='unet_best',
                         help='Path to the saved model,eg:unet_best,unet_final')
     parser.add_argument('--dataset', nargs='?', type=str, default='salt',

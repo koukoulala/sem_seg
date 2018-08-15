@@ -8,6 +8,7 @@ from torch.utils import data
 from torch.autograd import Variable
 
 from models.unet import Unet
+from models.unet_upsample import Unet_upsample
 from loader.salt_loader import SaltLoader
 
 def train(args):
@@ -23,7 +24,10 @@ def train(args):
     val_loader = data.DataLoader(v_loader, batch_size=args.batch_size, num_workers=8)
 
     # Setup Model
-    model = Unet(start_fm=16)
+    if args.arch=='unet':
+        model = Unet(start_fm=16)
+    else:
+        model=Unet_upsample(start_fm=16)
     print(model)
 
     model.cuda()
@@ -81,7 +85,7 @@ def train(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Hyperparams')
     parser.add_argument('--arch', nargs='?', type=str, default='unet',
-                        help='Architecture to use [\' unet, segnet etc\']')
+                        help='Architecture to use [\' unet, unet_sample etc\']')
     parser.add_argument('--dataset', nargs='?', type=str, default='salt',
                         help='Dataset to use [\' salt etc\']')
     parser.add_argument('--img_size_ori', nargs='?', type=int, default=101,

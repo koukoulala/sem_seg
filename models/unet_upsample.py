@@ -33,10 +33,10 @@ class up_conv(nn.Module):
         x = self.conv(x)
         return x
 
-class Unet(nn.Module):
+class Unet_upsample(nn.Module):
 
     def __init__(self,start_fm=16):
-        super(Unet, self).__init__()
+        super(Unet_upsample, self).__init__()
 
         # Input 128x128x1
 
