@@ -69,7 +69,7 @@ class Unet_upsample(nn.Module):
         # Convolution 6
         self.double_conv6 = double_conv(start_fm * 16, start_fm * 32, 3, 1, 1)
         # Dropout
-        self.dropout=nn.Dropout(0.5)
+        #self.dropout=nn.Dropout(0.5)
 
         # Transposed Convolution 5
         self.t_conv5 = up_conv(start_fm * 32, start_fm * 16, 2, 1,1,2)
