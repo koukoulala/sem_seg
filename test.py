@@ -31,6 +31,8 @@ def test(args):
     model_path = data_json[args.model]['model_path']
     model.load_state_dict(torch.load(model_path)['model_state'])
     model.cuda()
+    total = sum([param.nelement() for param in model.parameters()])
+    print('  + Number of params: %.2fM' % (total / 1e6))
 
     #test
     pred_list=[]

@@ -29,6 +29,8 @@ def train(args):
     else:
         model=Unet_upsample(start_fm=16)
     print(model)
+    total = sum([param.nelement() for param in model.parameters()])
+    print('Number of params: %.2fM' % (total / 1e6))
 
     model.cuda()
 
