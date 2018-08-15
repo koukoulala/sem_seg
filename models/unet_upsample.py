@@ -73,27 +73,27 @@ class Unet_upsample(nn.Module):
         self.dropout=nn.Dropout(0.5)
 
         # Transposed Convolution 5
-        self.t_conv5 = up_conv(start_fm * 32, start_fm * 16, 2, 1,1,2)
+        self.t_conv5 = up_conv(start_fm * 32, start_fm * 16, 3, 1,1,2)
         # Expanding Path Convolution 5
         self.ex_double_conv5 = double_conv(start_fm * 32, start_fm * 16, 3, 1, 1)
 
         # Transposed Convolution 4
-        self.t_conv4 = up_conv(start_fm * 16, start_fm * 8, 2, 1,1,2)
+        self.t_conv4 = up_conv(start_fm * 16, start_fm * 8, 3, 1,1,2)
         # Expanding Path Convolution 4
         self.ex_double_conv4 = double_conv(start_fm * 16, start_fm * 8, 3, 1, 1)
 
         # Transposed Convolution 3
-        self.t_conv3 = up_conv(start_fm * 8, start_fm * 4, 2, 1,1,2)
+        self.t_conv3 = up_conv(start_fm * 8, start_fm * 4, 3, 1,1,2)
         # Convolution 3
         self.ex_double_conv3 = double_conv(start_fm * 8, start_fm * 4, 3, 1, 1)
 
         # Transposed Convolution 2
-        self.t_conv2 = up_conv(start_fm * 4, start_fm * 2, 2, 1,1,2)
+        self.t_conv2 = up_conv(start_fm * 4, start_fm * 2, 3, 1,1,2)
         # Convolution 2
         self.ex_double_conv2 = double_conv(start_fm * 4, start_fm * 2, 3, 1, 1)
 
         # Transposed Convolution 1
-        self.t_conv1 = up_conv(start_fm * 2, start_fm , 2, 1,1,2)
+        self.t_conv1 = up_conv(start_fm * 2, start_fm , 3, 1,1,2)
         # Convolution 1
         self.ex_double_conv1 = double_conv(start_fm * 2, start_fm, 3, 1, 1)
 
