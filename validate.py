@@ -35,7 +35,7 @@ def test(args):
     model.cuda()
     model.eval()
     total = sum([param.nelement() for param in model.parameters()])
-    print('  + Number of params: %.2fM' % (total / 1e6))
+    print('Number of params: %.2fM' % (total / 1e6))
 
     #validate
     pred_list=[]
@@ -86,7 +86,7 @@ def test(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Hyperparams')
     parser.add_argument('--arch', nargs='?', type=str, default='unet',
-                        help='Architecture to use [\' unet, unet_sample etc\']')
+                        help='Architecture to use [\' unet, unet_upsample etc\']')
     parser.add_argument('--model', nargs='?', type=str, default='unet_best',
                         help='Path to the saved model,eg:unet_best,unet_final')
     parser.add_argument('--dataset', nargs='?', type=str, default='salt',
