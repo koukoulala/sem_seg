@@ -22,7 +22,7 @@ def test(args):
     model.load_state_dict(torch.load(model_path)['model_state'])
     model.cuda()
     total = sum([param.nelement() for param in model.parameters()])
-    print('  + Number of params: %.2fM' % (total / 1e6))
+    print('Number of params: %.2fM' % (total / 1e6))
 
     #visualize
     y=model(x)
