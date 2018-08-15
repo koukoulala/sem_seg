@@ -119,10 +119,10 @@ class Unet_upsample(nn.Module):
 
         # Bottom
         conv6 = self.double_conv6(maxpool5)
-        drop_bottom=self.dropout(conv6)
+        #drop_bottom=self.dropout(conv6)
 
         # Expanding Path
-        t_conv5 = self.t_conv5(drop_bottom)
+        t_conv5 = self.t_conv5(conv6)
         cat5 = torch.cat([conv5, t_conv5], 1)
         ex_conv5 = self.ex_double_conv5(cat5)
 
