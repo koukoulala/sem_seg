@@ -13,10 +13,10 @@
   },
   "unet_upsample_best":
   {
-    "model_path":"./saved_models/unet_sample_salt_best_model.pkl"
+    "model_path":"./saved_models/unet_upsample_salt_best_model.pkl"
   },
   "unet_upsample_final":
   {
-    "model_path":"./saved_models/unet_sample_salt_final_model.pkl"
+    "model_path":"./saved_models/unet_upsample_salt_final_model.pkl"
   }
 }

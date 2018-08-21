@@ -23,7 +23,7 @@ class up_conv(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size=3, stride=1, padding=1,scale_factor=2):
         super(up_conv, self).__init__()
         self.conv = nn.Sequential(
-            nn.UpsamplingBilinear2d(scale_factor=scale_factor),
+            nn.UpsamplingNearest2d(scale_factor=scale_factor),
             nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size,
                       stride=stride, padding=padding),
             nn.ReLU(inplace=True)

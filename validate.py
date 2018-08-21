@@ -85,9 +85,9 @@ def test(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Hyperparams')
-    parser.add_argument('--arch', nargs='?', type=str, default='unet',
+    parser.add_argument('--arch', nargs='?', type=str, default='unet_upsample',
                         help='Architecture to use [\' unet, unet_upsample etc\']')
-    parser.add_argument('--model', nargs='?', type=str, default='unet_best',
+    parser.add_argument('--model', nargs='?', type=str, default='unet_upsample_best',
                         help='Path to the saved model,eg:unet_best,unet_final')
     parser.add_argument('--dataset', nargs='?', type=str, default='salt',
                         help='Dataset to use [\' salt etc\']')
@@ -96,13 +96,7 @@ if __name__ == '__main__':
     parser.add_argument('--img_size_target', nargs='?', type=int, default=128,
                         help='Height of the input image')
 
-    parser.add_argument('--img_norm', dest='img_norm', action='store_true',
-                        help='Enable input image scales normalization [0, 1] | True by default')
-    parser.add_argument('--no-img_norm', dest='img_norm', action='store_false',
-                        help='Disable input image scales normalization [0, 1] | True by default')
-    parser.set_defaults(img_norm=False)
-
-    parser.add_argument('--batch_size', nargs='?', type=int, default=16,
+    parser.add_argument('--batch_size', nargs='?', type=int, default=32,
                         help='Batch Size')
 
 
