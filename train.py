@@ -16,9 +16,8 @@ def train(args):
     # Setup Dataloader
     data_json = json.load(open('config.json'))
     data_path=data_json[args.dataset]['data_path']
-    t_loader = SaltLoader(data_path, img_size_ori=args.img_size_ori,img_size_target=args.img_size_target, img_norm=args.img_norm)
-    v_loader = SaltLoader(data_path, split='val',img_size_ori=args.img_size_ori, img_size_target=args.img_size_target,
-                           img_norm=args.img_norm)
+    t_loader = SaltLoader(data_path, img_size_ori=args.img_size_ori,img_size_target=args.img_size_target)
+    v_loader = SaltLoader(data_path, split='val',img_size_ori=args.img_size_ori, img_size_target=args.img_size_target)
 
     train_loader = data.DataLoader(t_loader, batch_size=args.batch_size, num_workers=8, shuffle=True)
     val_loader = data.DataLoader(v_loader, batch_size=args.batch_size, num_workers=8)
