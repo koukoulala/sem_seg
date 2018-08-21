@@ -14,7 +14,7 @@ from torch.utils import data
 from models.unet_upsample import Unet_upsample
 from models.unet import Unet
 
-def test(args):
+def validate(args):
 
     # Setup Dataloader
     data_json = json.load(open('config.json'))
@@ -33,7 +33,6 @@ def test(args):
     model_path = data_json[args.model]['model_path']
     model.load_state_dict(torch.load(model_path)['model_state'])
     model.cuda()
-    model.eval()
     total = sum([param.nelement() for param in model.parameters()])
     print('Number of params: %.2fM' % (total / 1e6))
 
@@ -101,4 +100,4 @@ if __name__ == '__main__':
 
 
     args = parser.parse_args()
-    test(args)
+    validate(args)
