@@ -20,7 +20,7 @@ def validate(args):
     data_json = json.load(open('config.json'))
     data_path = data_json[args.dataset]['data_path']
 
-    v_loader = SaltLoader(data_path, split='val', split_size=0.5)
+    v_loader = SaltLoader(data_path, split='val')
     train_df=v_loader.train_df
 
     val_loader = data.DataLoader(v_loader, batch_size=args.batch_size, num_workers=8)
